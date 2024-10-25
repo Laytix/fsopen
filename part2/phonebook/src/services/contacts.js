@@ -12,4 +12,16 @@ const addContacts = (newContact) => {
   return request.then((response) => response.data);
 };
 
-export default { getContacts, addContacts };
+const deletePerson = (id) => {
+  axios.delete(`${baseUrl}/${id}`);
+  return getContacts();
+};
+
+// Use put method to partially update a ressource
+const update = (id, newObject) => {
+  // construct the unique url of the single note to be changed
+  const request = axios.put(`${baseUrl}/${id}`, newObject);
+  return request.then((response) => response.data);
+};
+
+export default { getContacts, addContacts, deletePerson, update };

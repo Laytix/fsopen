@@ -1,4 +1,4 @@
-const Persons = ({ persons, search }) => {
+const Persons = ({ persons, search, deleteContact }) => {
   return (
     <div>
       {persons
@@ -9,7 +9,8 @@ const Persons = ({ persons, search }) => {
         })
         .map((person) => (
           <p key={person.name}>
-            {person.name} {person.number}
+            {person.name} {person.number}{" "}
+            <button onClick={() => deleteContact(person)}>Delete</button>
           </p>
         ))}
     </div>
