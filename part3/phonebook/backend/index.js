@@ -1,9 +1,13 @@
 const express = require("express");
 const morgan = require("morgan");
-const app = express();
 
+const app = express();
+const cors = require("cors");
+
+app.use(cors());
 app.use(express.json());
 // app.use(morgan("tiny"));
+
 morgan.token("body", (req) => {
   return JSON.stringify(req.body);
 });
@@ -40,7 +44,7 @@ app.get("/", (request, response) => {
 
 app.get("/info", (request, response) => {
   const timestamp = currentDate.toString();
-  response.send(`<p>Phonebook has info for ${persons.length} people</p>
+  response.send(`<p>Part 3 Phonebook has info for ${persons.length} people</p>
                     <p>${timestamp}</p>`);
 });
 
@@ -92,11 +96,11 @@ app.post("/api/persons", (request, response) => {
     id: getRandomInt(10000),
   };
 
-  persons.concat(personAdd);
+  persons = persons.concat(personAdd);
   response.json(personAdd);
 });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Listening on PORT ${PORT}`);
 });

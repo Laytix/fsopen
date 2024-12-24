@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseUrl = "http://localhost:3002/persons";
+const baseUrl = "http://localhost:3001/api/persons";
 
 const getContacts = () => {
   const request = axios.get(baseUrl);
@@ -17,7 +17,7 @@ const deletePerson = (id) => {
   return getContacts();
 };
 
-// Use put method to partially update a resource
+// Use put method to partially update a ressource
 const update = (id, newObject) => {
   // construct the unique url of the single note to be changed
   const request = axios.put(`${baseUrl}/${id}`, newObject);
