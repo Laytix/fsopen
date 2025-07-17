@@ -76,6 +76,21 @@ app.post("/api/notes", (request, response) => {
   response.json(note);
 });
 
+app.put("/api/notes/:id", (request, response) => {
+  const body = request.body;
+  const id = request.params.id;
+
+  const filnote = notes.findIndex((note) => note.id == id)
+  
+
+  notes[filnote].important = !notes[filnote].important
+
+  response.json(notes[filnote])
+
+  
+})
+
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
