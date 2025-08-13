@@ -20,7 +20,7 @@ const deletePerson = (id) => {
 // Use put method to partially update a ressource
 const update = (id, newObject) => {
   // construct the unique url of the single note to be changed
-  const request = axios.put(`${baseUrl}/${id}`, newObject);
+  const request = axios.post(`${baseUrl}/${id}`, newObject);
   return request.then((response) => response.data);
 };
 

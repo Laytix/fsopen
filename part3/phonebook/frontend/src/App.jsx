@@ -26,61 +26,58 @@ const App = () => {
     const newContact = {
       name: newName,
       number: number,
-      id: `${persons.length + 1}`,
     };
 
-    const currentNames = persons.map((names) => names.name);
+    const existingContact = persons.find((person) => person.name === newName);
 
-    if (currentNames.includes(newName)) {
+    if (existingContact) {
       const msg = `${newName} is already in PhoneBook, do you want to replace the number?`;
-      const confirm = window.confirm(msg);
-      if (confirm) {
-        updateContact(newContact);
-      } else {
-        personServices.addContacts(newContact).then((response) => {
-          setPersons(persons.concat(response));
-          setMessage({ messages: `Added ${newContact.name}`, color: `green` });
-          console.log(message);
-
-          setTimeout(() => {
-            setMessage({ messages: null, color: `green` });
-          }, 2000);
-        });
+      if (window.confirm(msg)) {
+        personServices
+          .update(existingContact.id, newContact)
+          .then(() => {
+            grabNumbers();
+            setMessage({
+              messages: `${newContact.name}'s number has been updated`,
+              color: "green",
+            });
+            setTimeout(() => {
+              setMessage({ messages: null, color: "green" });
+            }, 2000);
+          })
+          .catch((error) => {
+            setMessage({
+              messages: `Information of ${newContact.name} has already been removed from the server`,
+              color: "red",
+            });
+            setTimeout(() => {
+              setMessage({ messages: null, color: "green" });
+            }, 2000);
+          });
       }
     } else {
-      personServices.addContacts(newContact).then((response) => {
-        setPersons(persons.concat(response));
-        setMessage({ messages: `Added ${newContact.name}`, color: `green` });
-        console.log(message);
-        setTimeout(() => {
-          setMessage({ messages: null, color: `green` });
-        }, 2000);
-      });
+      personServices
+        .addContacts(newContact)
+        .then((response) => {
+          setPersons(persons.concat(response));
+          setMessage({ messages: `Added ${newContact.name}`, color: "green" });
+          setTimeout(() => {
+            setMessage({ messages: null, color: "green" });
+          }, 2000);
+        })
+        .catch((error) => {
+          console.log(error.response.data.error);
+          setMessage({
+            messages: `${error.response.data.error}`,
+            color: "red",
+          });
+          setTimeout(() => {
+            setMessage({ messages: null, color: "green" });
+          }, 2000);
+        });
     }
 
     resetNewState();
-  };
-
-  const updateContact = (newObject) => {
-    const existingContact = persons.find((p) => p.name == newObject.name);
-    const existingId = existingContact.id;
-
-    personServices
-      .update(existingId, newObject)
-      .then((returnedPerson) => {
-        const nonduplicate = persons.filter(
-          (person) => person.id !== existingId
-        );
-        setPersons(nonduplicate.concat(returnedPerson));
-      })
-      .catch((error) => {
-        const msg = `Information of ${newObject.name} has already been removed from the server; ${error}`;
-
-        setMessage({ messages: msg, color: `red` });
-        setTimeout(() => {
-          setMessage({ messages: null, color: `green` });
-        }, 2000);
-      });
   };
 
   const deleteContact = (person) => {
