@@ -1,37 +1,8 @@
-const express = require('express')
-const mongoose = require('mongoose')
+const app = require('./app') // the actual Express application
+const config = require('./utils/config')
+const logger = require('./utils/logger')
+const PORT = config.PORT
 
-const app = express()
-
-const blogSchema = mongoose.Schema({
-  title: String,
-  author: String,
-  url: String,
-  likes: Number,
-})
-
-const Blog = mongoose.model('Blog', blogSchema)
-
-const mongoUrl = 'mongodb+srv://david-t:tobi@david-cluster.p2ehm.mongodb.net/blogList?retryWrites=true&w=majority&appName=david-cluster'
-mongoose.connect(mongoUrl)
-
-app.use(express.json())
-
-app.get('/api/blogs', (request, response) => {
-  Blog.find({}).then((blogs) => {
-    response.json(blogs)
-  })
-})
-
-app.post('/api/blogs', (request, response) => {
-  const blog = new Blog(request.body)
-
-  blog.save().then((result) => {
-    response.status(201).json(result)
-  })
-})
-
-const PORT = 3001
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+  logger.info(`Server running on port ${PORT}`)
 })
