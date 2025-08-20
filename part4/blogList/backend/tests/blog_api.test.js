@@ -54,6 +54,22 @@ test("post is saved to database", async () => {
   assert.strictEqual(response.length, blogDummyData.length + 1)
 });
 
+test("blog with missing title or url isnt saved to database", async() =>{
+    const newBlog = {
+    author: "Brandon Sanderson",
+    likes: 30,
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400)
+
+  const blogsatEnd = await blogsInDB()
+  assert.strictEqual(blogsatEnd.length, blogDummyData.length)
+
+})
+
 after(async () => {
   mongoose.connection.close();
 });
