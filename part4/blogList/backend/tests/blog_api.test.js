@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const supertest = require("supertest");
 const app = require("../app");
 const Blog = require("../models/blog");
-const { blogDummyData } = require("./test_helpers");
+const { blogDummyData, blogsInDB } = require("./test_helpers");
 
 const api = supertest(app);
 
@@ -30,11 +30,30 @@ test("all blogs are returned", async () => {
   assert.strictEqual(response.body.length, blogDummyData.length);
 });
 
-test("id keys exist in database", async()=>{
+test("id keys exist in database", async () => {
   const response = await api.get("/api/blogs");
-  console.log(response.body[0])
-  assert.strictEqual("id" in response.body[0], true)
-})
+  assert.strictEqual("id" in response.body[0], true);
+});
+
+test("post is saved to database", async () => {
+  const newBlog = {
+    author: "Brandon Sanderson",
+    title: "TRESS OF THE EMERALD SEA",
+    likes: 30,
+    url: "https://www.brandonsanderson.com/pages/standalones-cosmere"
+
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect('Content-Type', /application\/json/)
+  
+  const response = await blogsInDB()
+  console.log(response)
+  assert.strictEqual(response.length, blogDummyData.length + 1)
+});
+
 after(async () => {
   mongoose.connection.close();
 });
