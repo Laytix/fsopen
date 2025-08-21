@@ -1,27 +1,35 @@
-const notesRouter = require('express').Router()
-const Note = require('../models/note')
+const notesRouter = require("express").Router();
+const Note = require("../models/note");
 
 notesRouter.get("/", async (request, response) => {
-  const notes = await Note.find({})
-  response.json(notes)
+  const notes = await Note.find({});
+  response.json(notes);
 });
 
 notesRouter.get("/:id", async(request, response, next) => {
-  const note = await Note.findById(request.params.id)
-  if(note){
-    response.json(note)
-  } else{
-    response.status(404).end()
+  try {
+    const note = await Note.findById(request.params.id)
+    if(note){
+      response.json(note)
+    } else{
+      response.status(404).end()
+    }
+  } catch(error) {
+    // Check if it's a CastError (invalid ObjectId format)
+    if(error.name === 'CastError') {
+      return response.status(400).json({ error: 'invalid id format' })
+    }
+    // For other errors, pass to error handling middleware
+    next(error)
   }
 });
 
-notesRouter.delete("/:id", async(request, response, next) => {
-  await Note.findByIdAndDelete(request.params.id)
-  response.status(204).end()
-  
+notesRouter.delete("/:id", async (request, response, next) => {
+  await Note.findByIdAndDelete(request.params.id);
+  response.status(204).end();
 });
 
-notesRouter.post("/", async(request, response, next) => {
+notesRouter.post("/", async (request, response, next) => {
   const body = request.body;
 
   if (!body.content) {
@@ -35,9 +43,8 @@ notesRouter.post("/", async(request, response, next) => {
     important: Boolean(body.important) || false,
   });
 
-  const savedNote = await note.save()
-  response.status(201).json(savedNote)
-
+  const savedNote = await note.save();
+  response.status(201).json(savedNote);
 });
 
 notesRouter.put("/:id", (request, response, next) => {
@@ -59,5 +66,4 @@ notesRouter.put("/:id", (request, response, next) => {
     .catch((error) => next(error));
 });
 
-
-module.exports =  notesRouter
+module.exports = notesRouter;

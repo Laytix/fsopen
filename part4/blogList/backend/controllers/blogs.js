@@ -1,4 +1,5 @@
 const blogsRouter = require('express').Router()
+const { response } = require('express')
 const Blog = require('../models/blog')
 
 
@@ -22,4 +23,7 @@ blogsRouter.post('/', async(request, response) => {
   response.status(201).json(newBlog)
 })
 
+blogsRouter.delete('/:id', async(request, response) => {
+  
+})
 module.exports = blogsRouter
