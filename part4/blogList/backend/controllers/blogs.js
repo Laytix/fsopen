@@ -1,16 +1,28 @@
 const blogsRouter = require("express").Router();
+const jwt = require("jsonwebtoken");
 const Blog = require("../models/blog");
 const User = require("../models/user");
+const { request } = require("../app");
+const { error } = require("../utils/logger");
 
 blogsRouter.get("/", async (request, response) => {
-  const blogs = await Blog.find({}).populate('user');
-  
+  const blogs = await Blog.find({}).populate("user");
+
   response.json(blogs);
 });
 
 blogsRouter.post("/", async (request, response) => {
   try {
-    const user = await User.findById(request.body.userId);
+    if (!request.token) {
+      return response.status(401).json({ error: "token missing" });
+    }
+
+    const token = jwt.verify(request.token, process.env.SECRET);
+    if (!token.id) {
+      return response.status(401).json({ error: "token invalid" });
+    }
+
+    const user = await User.findById(token.id);
 
     if (!user) {
       return response.status(400).json({ error: "UserId not found." });
@@ -24,7 +36,6 @@ blogsRouter.post("/", async (request, response) => {
       });
     }
 
-
     const blog = new Blog({ ...request.body, user: user._id });
     const newBlog = await blog.save();
 
@@ -33,13 +44,32 @@ blogsRouter.post("/", async (request, response) => {
 
     response.status(201).json(newBlog);
   } catch (error) {
+    if (error.name === "JsonWebTokenError") {
+      return response.status(401).json({ error: "token invalid" });
+    }
     response.status(500).json({ error: `encountered error: ${error}` });
   }
 });
 
 blogsRouter.delete("/:id", async (request, response, next) => {
-  await Blog.findByIdAndDelete(request.params.id);
-  response.status(204).end();
+  const token = jwt.verify(request.token, process.env.SECRET);
+
+  if (!token.id) {
+    return response.status(401).send({ error: "token invalid" });
+  }
+
+  const blog = await Blog.findById(request.params.id)
+
+  console.log("token id", token.id)
+  console.log("blog user id", blog.user.toString())
+
+  if(token.id === blog.user.toString()){
+    await blog.deleteOne()
+    response.status(204).end();
+  }else{
+    return response.status(401).send({error: "only the blog creator allowed to delete this blog."})
+  }
+
 });
 
 blogsRouter.put("/:id", async (request, response) => {

@@ -2,16 +2,39 @@ const assert = require("node:assert");
 const { test, after, beforeEach } = require("node:test");
 const mongoose = require("mongoose");
 const supertest = require("supertest");
+const bcrypt = require("bcrypt");
 const app = require("../app");
 const Blog = require("../models/blog");
+const User = require("../models/user");
 const { blogDummyData, blogsInDB } = require("./test_helpers");
 
 const api = supertest(app);
 
+let token;
+let testUserId;
+
 beforeEach(async () => {
   await Blog.deleteMany({});
+  await User.deleteMany({});
 
-  const blogObjects = blogDummyData.map((blog) => new Blog(blog));
+  // Create a test user
+  const passwordHash = await bcrypt.hash("testpassword", 10);
+  const user = new User({
+    username: "testuser",
+    name: "Test User",
+    passwordHash,
+  });
+  const savedUser = await user.save();
+  testUserId = savedUser._id.toString();
+
+  // Login to get token
+  const loginResponse = await api
+    .post("/api/login")
+    .send({ username: "testuser", password: "testpassword" });
+  token = loginResponse.body.token;
+
+  // Create blogs associated with the test user
+  const blogObjects = blogDummyData.map((blog) => new Blog({ ...blog, user: savedUser._id }));
   const promiseArray = blogObjects.map((blog) => blog.save());
   await Promise.all(promiseArray);
 
@@ -45,12 +68,31 @@ test("post is saved to database", async () => {
 
   await api
     .post("/api/blogs")
+    .set("Authorization", `Bearer ${token}`)
     .send(newBlog)
+    .expect(201)
     .expect("Content-Type", /application\/json/);
 
   const response = await blogsInDB();
   console.log(response);
   assert.strictEqual(response.length, blogDummyData.length + 1);
+});
+
+test("adding a blog fails with 401 if token is not provided", async () => {
+  const newBlog = {
+    author: "Brandon Sanderson",
+    title: "TRESS OF THE EMERALD SEA",
+    likes: 30,
+    url: "https://www.brandonsanderson.com/pages/standalones-cosmere",
+  };
+
+  await api
+    .post("/api/blogs")
+    .send(newBlog)
+    .expect(401);
+
+  const blogsAtEnd = await blogsInDB();
+  assert.strictEqual(blogsAtEnd.length, blogDummyData.length);
 });
 
 test("blog with missing title or url isnt saved to database", async () => {
@@ -59,7 +101,11 @@ test("blog with missing title or url isnt saved to database", async () => {
     likes: 30,
   };
 
-  await api.post("/api/blogs").send(newBlog).expect(400);
+  await api
+    .post("/api/blogs")
+    .set("Authorization", `Bearer ${token}`)
+    .send(newBlog)
+    .expect(400);
 
   const blogsatEnd = await blogsInDB();
   assert.strictEqual(blogsatEnd.length, blogDummyData.length);
@@ -69,7 +115,10 @@ test("individual blog is deleted from database", async () => {
   const blogs = await blogsInDB();
 
   const blogtodelete = blogs[0];
-  await api.delete(`/api/blogs/${blogtodelete.id}`).expect(204);
+  await api
+    .delete(`/api/blogs/${blogtodelete.id}`)
+    .set("Authorization", `Bearer ${token}`)
+    .expect(204);
 
   const blogsatEnd = await blogsInDB()
   assert.strictEqual(blogsatEnd.length, blogDummyData.length - 1)
