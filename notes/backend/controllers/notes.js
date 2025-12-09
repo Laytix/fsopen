@@ -41,34 +41,49 @@ notesRouter.delete("/:id", async (request, response, next) => {
 });
 
 notesRouter.post("/", async (request, response, next) => {
-  const body = request.body;
+  try {
+    const body = request.body;
 
-  const decodedToken = jwt.verify(getTokenFrom(request), process.env.SECRET);
-  if (!decodedToken.id) {
-    return response.status(401).json({ error: "token invalid" });
-  }
-  const user = await User.findById(decodedToken.id);
-  if (!user) {
-    return response.status(400).json({ error: "userId missing or not valid" });
-  }
+    // Get and validate token
+    const token = getTokenFrom(request);
+    if (!token) {
+      return response.status(401).json({ error: "token missing" });
+    }
 
-  if (!body.content) {
-    return response.status(400).json({
-      error: "content missing",
+    // Verify token
+    const decodedToken = jwt.verify(token, process.env.SECRET);
+    if (!decodedToken.id) {
+      return response.status(401).json({ error: "token invalid" });
+    }
+
+    // Find user
+    const user = await User.findById(decodedToken.id);
+    if (!user) {
+      return response.status(404).json({ error: "user not found" });
+    }
+
+    // Validate request body
+    if (!body.content) {
+      return response.status(400).json({
+        error: "content missing",
+      });
+    }
+
+    // Create and save note
+    const note = new Note({
+      content: body.content,
+      important: Boolean(body.important) || false,
+      user: user._id,
     });
+
+    const savedNote = await note.save();
+    user.notes = user.notes.concat(savedNote._id);
+    await user.save();
+
+    response.status(201).json(savedNote);
+  } catch (error) {
+    next(error);
   }
-
-  const note = new Note({
-    content: body.content,
-    important: Boolean(body.important) || false,
-    user: user._id,
-  });
-
-  const savedNote = await note.save();
-  user.notes = user.notes.concat(savedNote._id);
-  await user.save();
-
-  response.status(201).json(savedNote);
 });
 
 notesRouter.put("/:id", (request, response, next) => {
