@@ -1,16 +1,10 @@
-const Blog = ({ blog }) => {
-  const blogStyle = {
-    paddingTop: 10,
-    paddingLeft: 2,
-    border: 'solid',
-    borderWidth: 1,
-    marginBottom: 2,
-    marginTop:2
-  }
+import './Blog.css'
 
+const Blog = ({ blog }) => {
   return (
-    <div style={blogStyle}>
-      {blog.title} {blog.author}
+    <div className="blog">
+      <div className="blog-title">{blog.title}</div>
+      <div className="blog-author">by {blog.author}</div>
     </div>
   )
 }
