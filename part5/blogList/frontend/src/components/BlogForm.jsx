@@ -1,31 +1,35 @@
 import { useState } from "react";
 
+const BlogForm = ({ createBlog }) => {
+  const [newBlogTitle, setNewBlogTitle] = useState("");
+  const [newBlogAuthor, setNewBlogAuthor] = useState("");
+  const [newBlogUrl, setNewBlogUrl] = useState("");
+  const [newBlogLikes, setNewBlogLikes] = useState(0);
 
+  const reset = () => {
+    setNewBlogTitle("");
+    setNewBlogAuthor("");
+    setNewBlogUrl("");
+    setNewBlogLikes(0);
+  };
 
-const BlogForm = ({
-  createBlog,
-  newBlogTitle,
-  handleTitleChange,
-  newBlogAuthor,
-  handleAuthorChange,
-  newBlogLikes,
-  handleLikesChange,
-  newBlogUrl,
-  handleUrlChange,
-}) => {
-
-    
   return (
     <div>
       <h2>create new</h2>
-      <form onSubmit={createBlog}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          createBlog(newBlogTitle, newBlogAuthor, newBlogUrl, newBlogLikes);
+          reset();
+        }}
+      >
         <div>
           <label>
             title
             <input
               type="text"
               value={newBlogTitle}
-              onChange={handleTitleChange}
+              onChange={({ target }) => setNewBlogTitle(target.value)}
             />
           </label>
         </div>
@@ -35,7 +39,7 @@ const BlogForm = ({
             <input
               type="text"
               value={newBlogAuthor}
-              onChange={handleAuthorChange}
+              onChange={({ target }) => setNewBlogAuthor(target.value)}
             />
           </label>
         </div>
@@ -45,7 +49,7 @@ const BlogForm = ({
             <input
               type="text"
               value={newBlogUrl}
-              onChange={handleUrlChange}
+              onChange={({ target }) => setNewBlogUrl(target.value)}
             />
           </label>
         </div>
@@ -55,7 +59,7 @@ const BlogForm = ({
             <input
               type="number"
               value={newBlogLikes}
-              onChange={handleLikesChange}
+              onChange={({ target }) => setNewBlogLikes(Number(target.value))}
             />
           </label>
         </div>
