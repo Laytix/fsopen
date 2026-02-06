@@ -6,16 +6,21 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': {
-        target: 'http://localhost:3001',
+      "/api": {
+        target: "http://localhost:3001",
         changeOrigin: true,
       },
-    }
+    },
   },
   css: {
     modules: {
       localsConvention: "camelCase",
       generateScopedName: "[local]_[hash:base64:2]",
     },
+  },
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: "./testSetup.js",
   },
 });
