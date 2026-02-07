@@ -23,8 +23,8 @@ const Blog = ({ blog, updateLikes, username, deleteBlog }) => {
       <button onClick={toggleDetails}>{showDetails ? 'hide' : 'show'}</button>
       {showDetails && (
         <div className="blog-details">
-          <div>{blog.url}</div>
-          <div>
+          <div className="blog-url">{blog.url}</div>
+          <div className="blog-likes">
             likes {blog.likes} <button onClick={handleLike}>like</button>
           </div>
           {username === blog['user'].username && (
