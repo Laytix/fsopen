@@ -1,24 +1,44 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import ReactDOM from 'react-dom/client'
+import { createStore } from "redux";
+import "./index.css";
+// import App from './App.jsx'
 
-
-const counterReducer = (state= 0 , action) =>{
-  switch(action.type){
-    case 'INCREMENT': 
-      return state + 1
-    case 'DECREMENT':
-      return state - 1
-    case 'ZERO':
-      return 0
+const counterReducer = (state = 0, action) => {
+  switch (action.type) {
+    case "INCREMENT":
+      return state + 1;
+    case "DECREMENT":
+      return state - 1;
+    case "ZERO":
+      return 0;
     default:
-      return state
+      return state;
   }
+};
+const store = createStore(counterReducer);
+
+const App = () => {
+  return (
+    <div>
+      <div>{store.getState()}</div>
+      <button onClick={() => store.dispatch({ type: "INCREMENT" })}>
+        plus
+      </button>
+      <button onClick={() => store.dispatch({ type: "DECREMENT" })}>
+        minus
+      </button>
+      <button onClick={() => store.dispatch({ type: "ZERO" })}>zero</button>
+    </div>
+  );
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root'))
+
+const renderApp = () => {
+  root.render(<App />)
 }
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+renderApp()
+store.subscribe(renderApp)
